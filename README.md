@@ -4,14 +4,14 @@ Robot robot;
 
 int grid = 100;
 PVector bpos = new PVector();
-float bsize = grid;
+float bsize = 100;
 float cameraRotateX;
 float cameraRotateY;
 float cameraSpeed;
 int gridCount = 50;
 PVector pos, speed;
 float accelMag;
-float jspeed = bsize*2;
+float gravPull = 0.93;
 
 void setup() {
   fullScreen(P3D);
@@ -32,8 +32,8 @@ void setup() {
 float angle;
 
 void draw() {
-//  jump();
-  updateRotation();
+  //  jump();
+  updateRotation();  
   lights();
   translate(width/2, height/10);
   rotateX(cameraRotateY);
@@ -62,7 +62,7 @@ void draw() {
 void drawGrid(int count) {
   translate(-pos.x, 0, -pos.y);
   stroke(255);
-  float size = (count -1) * bsize*2;
+  float size = (count -1) * grid*2;
   for (int i = 0; i < count; i++) {
     float pos = map(i, 0, count-1, -0.5 * size, 0.5 * size);
     line(pos, 0, -size/2, pos, 0, size/2);
@@ -110,10 +110,24 @@ PVector getMovementDir() {
   return pressedDir.copy().normalize();
 }
 
-boolean wPressed, sPressed, aPressed, dPressed;
+boolean wPressed, sPressed, aPressed, dPressed, jPressed;
 PVector pressedDir = new PVector();
 
 void keyPressed() {
+  if (keyPressed) { // just for fun hehe - this allows you to GROW or SHRINK in size! :D
+    if (key == CODED) { // you can become VERY BIG and teeny tiny :) 
+      if (keyCode == CONTROL) { // alt makes you BIG while ctrl makes you tiny :D
+        bsize = bsize/2;
+      }
+    }
+  }
+  if (keyPressed) {
+    if (key == CODED) {
+      if (keyCode == ALT) {
+        bsize = bsize*2;
+      }
+    }
+  } // fun ends here
   switch(key) {
   case 'w':
     wPressed = true;
@@ -132,7 +146,9 @@ void keyPressed() {
     pressedDir.x = 1;
     break;
   case ' ':
-      bpos.y -= jspeed;
+    jPressed = true;
+    bpos.y = -200;
+    break;
   }
 }
 
@@ -155,7 +171,8 @@ void keyReleased() {
     pressedDir.x = aPressed ? -1 : 0;
     break;
   case ' ':
-    bpos.y += jspeed;
+    jPressed = false;
+    bpos.y = -gravPull;
     break;
   }
 }
