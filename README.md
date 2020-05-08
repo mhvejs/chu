@@ -5,14 +5,13 @@ Robot robot;
 int grid = 100;
 PVector bpos = new PVector();
 float bsize = grid;
-float bspeedX, bspeedY, bspeedZ;
-boolean input1, input2, input3, input4;
 float cameraRotateX;
 float cameraRotateY;
 float cameraSpeed;
 int gridCount = 50;
 PVector pos, speed;
 float accelMag;
+float jspeed = bsize*2;
 
 void setup() {
   fullScreen(P3D);
@@ -33,6 +32,7 @@ void setup() {
 float angle;
 
 void draw() {
+//  jump();
   updateRotation();
   lights();
   translate(width/2, height/10);
@@ -51,7 +51,7 @@ void draw() {
   speed.add(accel);
   pos.add(speed);
   speed.mult(0.9);  
-  translate(0, height/2+bsize/2);
+  translate(0, height/2+bsize/2, 0);
   drawGrid(gridCount);
   noCursor();
 
@@ -80,26 +80,26 @@ void mouseClicked() //only used so I can keep track of coordinates in case I nee
   println("Y" + mouseY);
 }
 
-  int getSketchCenterX() {
-    return getFrame(getSurface()).getX() + width / 2;
-  }
-  
-  int getSketchCenterY() {
-    return getFrame(getSurface()).getY() + height / 2;
-  }
-  
-  static final com.jogamp.newt.opengl.GLWindow getFrame(final PSurface surface) {
-    return ((com.jogamp.newt.opengl.GLWindow) surface.getNative());
-  }
-  
-  float mouseChangeX() {
-    return getSketchCenterX() - (float) MouseInfo.getPointerInfo().getLocation().getX();
-  }
-  
-  float mouseChangeY() {
-    return getSketchCenterY() - (float) MouseInfo.getPointerInfo().getLocation().getY();
-  }
-  
+int getSketchCenterX() {
+  return getFrame(getSurface()).getX() + width / 2;
+}
+
+int getSketchCenterY() {
+  return getFrame(getSurface()).getY() + height / 2;
+}
+
+static final com.jogamp.newt.opengl.GLWindow getFrame(final PSurface surface) {
+  return ((com.jogamp.newt.opengl.GLWindow) surface.getNative());
+}
+
+float mouseChangeX() {
+  return getSketchCenterX() - (float) MouseInfo.getPointerInfo().getLocation().getX();
+}
+
+float mouseChangeY() {
+  return getSketchCenterY() - (float) MouseInfo.getPointerInfo().getLocation().getY();
+}
+
 void updateRotation() {
   cameraRotateX -= mouseChangeX() * cameraSpeed;
   cameraRotateY += mouseChangeY() * cameraSpeed;
@@ -131,6 +131,8 @@ void keyPressed() {
     dPressed = true;
     pressedDir.x = 1;
     break;
+  case ' ':
+      bpos.y -= jspeed;
   }
 }
 
@@ -151,6 +153,9 @@ void keyReleased() {
   case 'd':
     dPressed = false;
     pressedDir.x = aPressed ? -1 : 0;
+    break;
+  case ' ':
+    bpos.y += jspeed;
     break;
   }
 }
