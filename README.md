@@ -11,7 +11,6 @@ float cameraSpeed;
 int gridCount = 50;
 PVector pos, speed;
 float accelMag;
-float gravPull = 0.93;
 
 void setup() {
   fullScreen(P3D);
@@ -32,8 +31,7 @@ void setup() {
 float angle;
 
 void draw() {
-  //  jump();
-  updateRotation();  
+  updateRotation();
   lights();
   translate(width/2, height/10);
   rotateX(cameraRotateY);
@@ -128,6 +126,9 @@ void keyPressed() {
       }
     }
   } // fun ends here
+  if (keyCode == SHIFT) {
+    accelMag = 6;
+  }
   switch(key) {
   case 'w':
     wPressed = true;
@@ -145,14 +146,13 @@ void keyPressed() {
     dPressed = true;
     pressedDir.x = 1;
     break;
-  case ' ':
-    jPressed = true;
-    bpos.y = -200;
-    break;
   }
 }
 
 void keyReleased() {
+  if (keyCode == SHIFT) {
+    accelMag = 2;
+  }
   switch(key) {
   case 'w':
     wPressed = false;
@@ -167,6 +167,11 @@ void keyReleased() {
     pressedDir.x = dPressed ? 1 : 0;
     break;
   case 'd':
+    dPressed = false;
+    pressedDir.x = aPressed ? -1 : 0;
+    break;
+  }
+}
     dPressed = false;
     pressedDir.x = aPressed ? -1 : 0;
     break;
