@@ -14,6 +14,7 @@ PVector pressedDir = new PVector();
 float accelMag;
 
 Player player; 
+Enemy enemy;
 
 com.jogamp.newt.opengl.GLWindow myGLWindow;
 
@@ -30,7 +31,8 @@ void setup() {
   myGLWindow=getFrame(getSurface());
 
   accelMag = 2;
-  player = new Player(); 
+  player = new Player();
+  enemy = new Enemy();
 
   gridLevelY = height/2; 
 
@@ -52,6 +54,9 @@ void draw() {
   lights();
 
   updateRotation();
+
+  enemy.enemydisplay();
+  enemy.enemymove();
 
   translate(width/2, height/10);
   rotateX(cameraRotateY);
@@ -248,7 +253,6 @@ class Player {
     jumpcounter=0;
     playermoveY=-21;
     jump=true;
-  //  bpos.x = rotate(PI/3.0);
   }
 
   void jumpManagement() {
@@ -283,3 +287,20 @@ class Player {
   //
 }
 //
+
+class Enemy {
+
+  Enemy() {
+  }
+  
+  void enemydisplay() {
+    pushMatrix();
+    fill(255,0,0);
+    box(50, width/2, height/2);
+    popMatrix();
+  }
+  
+  void enemymove() {
+    
+  }
+}
