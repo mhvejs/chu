@@ -24,8 +24,6 @@ float gridLevelY;
 
 void setup() {
   fullScreen(P3D);
-  //size (800, 800, P3D);
-
   smooth(8);
 
   myGLWindow=getFrame(getSurface());
@@ -55,9 +53,7 @@ void draw() {
 
   updateRotation();
 
-  enemy.enemydisplay();
-  enemy.enemymove();
-
+  pushMatrix();
   translate(width/2, height/10);
   rotateX(cameraRotateY);
   rotateY(cameraRotateX);
@@ -68,6 +64,10 @@ void draw() {
 
   drawGrid();
 
+  enemy.display();
+  enemy.move();
+  popMatrix();
+
   angle += mouseChangeX()*0.003;
   robot.mouseMove(getSketchCenterX(), getSketchCenterY());
 }
@@ -75,10 +75,9 @@ void draw() {
 // -----------------------------------------------------------------
 
 void drawGrid() {
+  pushMatrix();
   int count = 50;
-  translate(-player.pos.x, 
-    gridLevelY, 
-    -player.pos.y);
+  translate(-player.pos.x, gridLevelY, -player.pos.y);
   stroke(255);
   float size = (count -1) * player.bsize*2;
   for (int i = 0; i < count; i++) {
@@ -86,6 +85,7 @@ void drawGrid() {
     line(pos2, 0, -size/2, pos2, 0, size/2);
     line(-size/2, 0, pos2, size/2, 0, pos2);
   }
+  popMatrix();
 }
 
 // -----------------------------------------------------------------
@@ -197,7 +197,30 @@ void keyReleased() {
     break;
   }
 }
+//===================================================================
+class Enemy {
+  PVector ebpos = new PVector();
+  float ebsize  = 100;
 
+  Enemy() {
+    ebpos.x = 300; 
+    ebpos.y =  height/2-ebsize/2; //   height/2+ebsize/2;
+    ebpos.z = -300; 
+    //  ebpos.x = random();
+  }//constr
+
+  void display() {
+    pushMatrix();
+    translate(-player.pos.x, 0, -player.pos.y);
+    translate(ebpos.x, ebpos.y, ebpos.z);
+    fill(255, 0, 0);
+    box(ebsize);
+    popMatrix();
+  }
+  void move() {
+    ebpos.x++;
+  }
+}
 //==================================================================
 
 class Player {
@@ -221,23 +244,13 @@ class Player {
   } // constr 
 
   void display() {
-    pushMatrix();
 
-    translate(bpos.x, 
-      bpos.y, 
-      bpos.z);
+    pushMatrix();
+    translate(bpos.x, bpos.y, bpos.z);
     stroke(255);
     fill(0);
     rotateY(atan2(speed.x, speed.y));
     box(bsize);
-
-    /* // head 
-     float diameter = 60; 
-     fill(211, 1, 1); // RED 
-     noStroke(); 
-     translate(0, -diameter, 33);
-     sphere(diameter/2);
-     */
     popMatrix();
   }
 
@@ -250,9 +263,11 @@ class Player {
   }
 
   void startJump() {
-    jumpcounter=0;
-    playermoveY=-21;
-    jump=true;
+    if (bpos.y == height/2-bsize/2) {
+      jump=true;
+      jumpcounter=0;
+      playermoveY=-21;
+    }
   }
 
   void jumpManagement() {
@@ -287,20 +302,3 @@ class Player {
   //
 }
 //
-
-class Enemy {
-
-  Enemy() {
-  }
-  
-  void enemydisplay() {
-    pushMatrix();
-    fill(255,0,0);
-    box(50, width/2, height/2);
-    popMatrix();
-  }
-  
-  void enemymove() {
-    
-  }
-}
