@@ -1,4 +1,3 @@
-```Processing
 import java.awt.*;
 
 Robot robot;
@@ -202,32 +201,32 @@ void keyReleased() {
 // ==================================================================
 /*
 class Enemy {
-  PVector emove = new PVector();
-  float ebsize  = 100;
-  PVector ebpos = new PVector(random(width), height/2-ebsize/2, 0.);
-
-  Enemy() {
-    //ebpos.x = 300;
-    //ebpos.y =  height/2-ebsize/2; //   height/2+ebsize/2;
-    //ebpos.z = -300;
-  }//constr
-
-  void display() {
-    pushMatrix();
-    translate(-player.pos.x, 0, -player.pos.y);
-    translate(ebpos.x, ebpos.y, ebpos.z);
-    fill(255, 0, 0);
-    box(ebsize);
-    popMatrix();
-  }
-  void move() {
-    float angle = atan2(bpos.y-ebpos.y, bpos.x-ebpos.x);
-    float newX = cos(angle) * speed + ebpos.x;
-    float newY = sin(angle) * speed + ebpos.y;
-    ebpos.set(newX, newY, 0.);
-  }
-}
-*/
+ PVector emove = new PVector();
+ float ebsize  = 100;
+ PVector ebpos = new PVector(random(width), height/2-ebsize/2, 0.);
+ 
+ Enemy() {
+ //ebpos.x = 300;
+ //ebpos.y =  height/2-ebsize/2; //   height/2+ebsize/2;
+ //ebpos.z = -300;
+ }//constr
+ 
+ void display() {
+ pushMatrix();
+ translate(-player.pos.x, 0, -player.pos.y);
+ translate(ebpos.x, ebpos.y, ebpos.z);
+ fill(255, 0, 0);
+ box(ebsize);
+ popMatrix();
+ }
+ void move() {
+ float angle = atan2(bpos.y-ebpos.y, bpos.x-ebpos.x);
+ float newX = cos(angle) * speed + ebpos.x;
+ float newY = sin(angle) * speed + ebpos.y;
+ ebpos.set(newX, newY, 0.);
+ }
+ }
+ */
 // ==================================================================
 
 class Player {
@@ -312,29 +311,27 @@ class Player {
 class Enemy {
   PVector emove = new PVector();
   float ebsize  = 100;
-  //PVector ebpos = new PVector(random(width), height/2-ebsize/2, 0.);
   PVector ebpos = new PVector();
-  float espeed = 5;
+  float espeed = 7;
 
   Enemy() {
     ebpos.x = random(width);
     ebpos.y = height/2-ebsize/2; //   height/2+ebsize/2;
-    ebpos.z = random(0,301);
+    ebpos.z = random(0, 301);
   }//constr
 
   void display() {
     pushMatrix();
-    translate(-player.pos.x, 0, -player.pos.y);
+    translate(-player.pos.x, 0, -player.pos.z);
     translate(ebpos.x, ebpos.y, ebpos.z);
     fill(255, 0, 0);
     box(ebsize);
     popMatrix();
   }
   void move() {
-    float angle = atan2(player.pos.y-ebpos.y, player.pos.x-ebpos.x);
-    float newX = cos(angle) * espeed + ebpos.x;
-    float newY = sin(angle) * espeed + ebpos.y;
-    float newZ = sin(angle) * espeed + ebpos.z;
-    ebpos.set(newX, newY, newZ);
+    PVector dir = PVector.sub(player.pos, ebpos);
+    dir.y = 0;
+    dir.setMag(espeed);
+    ebpos.add(dir);
   }
 }
