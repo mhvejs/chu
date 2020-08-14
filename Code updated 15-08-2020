@@ -1,0 +1,280 @@
+´´´Processing
+import java.awt.*;
+
+Robot robot;
+
+float cameraRotateX;
+float cameraRotateY;
+float cameraSpeed;
+
+float angle;
+
+boolean wPressed, sPressed, aPressed, dPressed;
+PVector pressedDir = new PVector();
+float accelMag;
+
+Player player; 
+Enemy enemy;
+
+com.jogamp.newt.opengl.GLWindow myGLWindow;
+
+float gridLevelY; 
+
+// ----------------------------------------------------------------------------------------
+
+void setup() {
+  fullScreen(P3D);
+  smooth(8);
+
+  myGLWindow=getFrame(getSurface());
+
+  accelMag = 2;
+  player = new Player();
+  enemy = new Enemy();
+
+  gridLevelY = height/2; 
+
+  cameraSpeed = TWO_PI / width;
+  cameraRotateY = -PI/6;
+
+  try {
+    robot = new Robot();
+  } 
+  catch(Exception ex) {
+    println(ex);
+  }
+
+  noCursor();
+}
+
+void draw() {
+  background(125);
+  lights();
+
+  updateRotation();
+
+  translate(width/2, height/10);
+  rotateX(cameraRotateY);
+  rotateY(cameraRotateX);
+  translate(-player.pos.x, 0, -player.pos.z);
+
+  player.display(); 
+  player.move();
+  //  player.hit();
+
+  drawGrid();
+
+  enemy.display();
+  enemy.move();
+
+  angle += mouseChangeX()*0.003;
+  robot.mouseMove(getSketchCenterX(), getSketchCenterY());
+}
+
+// ----------------------------------------------------------------- GRID
+
+void drawGrid() {
+  pushMatrix();
+  int count = 50;
+  translate(0, gridLevelY);
+  stroke(255);
+  float size = (count -1) * player.size*2;
+  for (int i = 0; i < count; i++) {
+    float pos2 = map(i, 0, count-1, -0.5 * size, 0.5 * size);
+    line(pos2, 0, -size/2, pos2, 0, size/2);
+    line(-size/2, 0, pos2, size/2, 0, pos2);
+  }
+  popMatrix();
+}
+
+// ----------------------------------------------------------------- CAMERA
+
+int getSketchCenterX() {
+  return
+    myGLWindow.getX() + width / 2;
+}
+
+int getSketchCenterY() {
+  return 
+    myGLWindow.getY() + height / 2;
+}
+
+static final com.jogamp.newt.opengl.GLWindow getFrame(final PSurface surface) {
+  // used only once ! 
+  return 
+    (com.jogamp.newt.opengl.GLWindow) surface.getNative();
+}
+
+float mouseChangeX() {
+  return 
+    getSketchCenterX() - (float) MouseInfo.getPointerInfo().getLocation().getX();
+}
+
+float mouseChangeY() {
+  return
+    getSketchCenterY() - (float) MouseInfo.getPointerInfo().getLocation().getY();
+}
+
+void updateRotation() {
+  cameraRotateX -= mouseChangeX() * cameraSpeed;
+  cameraRotateY += mouseChangeY() * cameraSpeed;
+  cameraRotateY = constrain(cameraRotateY, -HALF_PI, 0);
+}
+
+PVector getMovementDir() {
+  return pressedDir.copy().normalize();
+}
+
+// -------------------------------------------------------------------------- MOVEMENT
+
+void mouseClicked() {
+  //only used so I can keep track of coordinates in case I need to change things
+  println("X " + mouseX);
+  println("Y " + mouseY);
+}
+
+void keyPressed() {
+  if (keyCode == SHIFT) {
+    accelMag = 4;
+  }
+
+  switch(key) {
+
+  case ' ':
+    player.startJump(); 
+    break; 
+
+  case 'w':
+    wPressed = true;
+    pressedDir.y = -1;
+    break;
+
+  case 'a':
+    aPressed = true;
+    pressedDir.x = -1;
+    break;
+
+  case 's':
+    sPressed = true;
+    pressedDir.y = 1;
+    break;
+
+  case 'd':
+    dPressed = true;
+    pressedDir.x = 1;
+    break;
+  }
+}
+
+void keyReleased() {
+  if (keyCode == SHIFT) {
+    accelMag = 2;
+  }
+
+  switch(key) {
+
+  case 'w':
+    wPressed = false;
+    pressedDir.y = sPressed ? 1 : 0;
+    break;
+
+  case 'a':
+    aPressed = false;
+    pressedDir.x = dPressed ? 1 : 0;
+    break;
+
+  case 's':
+    sPressed = false;
+    pressedDir.y = wPressed ? -1 : 0;
+    break;
+
+  case 'd':
+    dPressed = false;
+    pressedDir.x = aPressed ? -1 : 0;
+    break;
+  }
+}
+
+// -------------------------------------------------------------------------- PLAYER CLASS
+
+class Player {
+  float size  = 100;
+  boolean jump = false;
+  int bounceCount;
+  float gravity = 1.5;
+
+  PVector pos, speed;
+
+  Player() {
+    pos = new PVector(0, height/2 + size/2, 0);
+    speed = new PVector();
+  }
+
+  void display() {
+    pushMatrix();
+    translate(pos.x, pos.y, pos.z);
+    stroke(255);
+    fill(0);
+    rotateY(atan2(speed.x, speed.z));
+    box(size);
+    popMatrix();
+  }
+
+  void move() {
+    PVector accel = getMovementDir().rotate(cameraRotateX).mult(accelMag);
+    accel.set(accel.x, gravity, accel.y);
+    speed.add(accel);
+    pos.add(speed);
+    speed.mult(0.9);
+    jumpManagement();
+  }
+
+  void startJump() {
+    if (!jump) {
+      jump = true;
+      bounceCount = 0;
+      speed.y = -35; //height of jump
+    }
+  }
+
+  void jumpManagement() {
+    if (pos.y >= height/2 - size/2) {
+      bounceCount++;
+      pos.y = height/2 - size/2;
+      speed.y *= -0.8;
+      jump = false;
+      if (bounceCount > 5) {
+        speed.y = 0;
+      }
+    }
+  }
+}
+
+// -------------------------------------------------------------------------- ENEMY CLASS #1
+
+class Enemy {
+  float size = 100;
+  PVector pos;
+  float speed = 7;
+
+  Enemy() {
+    pos = new PVector(random(width), height/2 - size/2, random(0, 301));
+  }
+
+  void display() {
+    pushMatrix();
+    translate(pos.x, pos.y, pos.z);
+    fill(255, 0, 0);
+    box(size);
+    popMatrix();
+  }
+
+  void move() {
+    PVector dir = PVector.sub(player.pos, pos);
+    dir.y = 0;
+    dir.setMag(speed);
+    pos.add(dir);
+  }
+}
+
+// --------------------------------------------------------------------------
