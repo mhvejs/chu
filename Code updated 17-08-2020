@@ -1,3 +1,9 @@
+//Problems to be fixed:
+//Rotate player character on jump
+//Enemy box rotate alongside with player movement to always face "front"
+
+// ---------------------------------------------------------------------------------------- INITIAL
+
 import java.awt.*;
 
 Robot robot;
@@ -14,22 +20,27 @@ float accelMag;
 
 Player player; 
 Enemy enemy;
+Hit hit;
+Bullet bullet;
 
 com.jogamp.newt.opengl.GLWindow myGLWindow;
 
 float gridLevelY; 
 
-// ----------------------------------------------------------------------------------------
+PImage img;
+// ---------------------------------------------------------------------------------------- SETUP
 
 void setup() {
   fullScreen(P3D);
   smooth(8);
-
+  img = loadImage("black.jpg");
   myGLWindow=getFrame(getSurface());
 
   accelMag = 2;
   player = new Player();
   enemy = new Enemy();
+  hit = new Hit();
+  bullet = new Bullet();
 
   gridLevelY = height/2; 
 
@@ -46,6 +57,8 @@ void setup() {
   noCursor();
 }
 
+// ---------------------------------------------------------------------------------------- DRAW
+
 void draw() {
   background(125);
   lights();
@@ -59,7 +72,11 @@ void draw() {
 
   player.display(); 
   player.move();
-  //  player.hit();
+
+  bullet.playerdisplay();
+  bullet.playermovement();
+
+  hit.display();
 
   drawGrid();
 
@@ -70,7 +87,7 @@ void draw() {
   robot.mouseMove(getSketchCenterX(), getSketchCenterY());
 }
 
-// ----------------------------------------------------------------- GRID
+// ---------------------------------------------------------------------------------------- GRID
 
 void drawGrid() {
   pushMatrix();
@@ -86,7 +103,7 @@ void drawGrid() {
   popMatrix();
 }
 
-// ----------------------------------------------------------------- CAMERA
+// ---------------------------------------------------------------------------------------- CAMERA
 
 int getSketchCenterX() {
   return
@@ -124,41 +141,43 @@ PVector getMovementDir() {
   return pressedDir.copy().normalize();
 }
 
-// -------------------------------------------------------------------------- MOVEMENT
+// ---------------------------------------------------------------------------------------- PLAYER MOVEMENT
 
 void mouseClicked() {
   //only used so I can keep track of coordinates in case I need to change things
   println("X " + mouseX);
   println("Y " + mouseY);
+  println("EnemyX " + enemy.pos.x);
+  println("PlayerX " + player.pos.x);
 }
 
 void keyPressed() {
-  if (keyCode == SHIFT) {
+  if (keyCode == SHIFT) { //dash
     accelMag = 4;
   }
 
-  switch(key) {
+  switch(keyCode) {
 
-  case ' ':
+  case 32:
     player.startJump(); 
     break; 
 
-  case 'w':
+  case 87:
     wPressed = true;
     pressedDir.y = -1;
     break;
 
-  case 'a':
+  case 65:
     aPressed = true;
     pressedDir.x = -1;
     break;
 
-  case 's':
+  case 83:
     sPressed = true;
     pressedDir.y = 1;
     break;
 
-  case 'd':
+  case 68:
     dPressed = true;
     pressedDir.x = 1;
     break;
@@ -166,35 +185,35 @@ void keyPressed() {
 }
 
 void keyReleased() {
-  if (keyCode == SHIFT) {
+  if (keyCode == SHIFT) { //dash end
     accelMag = 2;
   }
 
-  switch(key) {
+  switch(keyCode) {
 
-  case 'w':
+  case 87:
     wPressed = false;
     pressedDir.y = sPressed ? 1 : 0;
     break;
 
-  case 'a':
+  case 65:
     aPressed = false;
     pressedDir.x = dPressed ? 1 : 0;
     break;
 
-  case 's':
+  case 83:
     sPressed = false;
     pressedDir.y = wPressed ? -1 : 0;
     break;
 
-  case 'd':
+  case 68:
     dPressed = false;
     pressedDir.x = aPressed ? -1 : 0;
     break;
   }
 }
 
-// -------------------------------------------------------------------------- PLAYER CLASS
+// ---------------------------------------------------------------------------------------- PLAYER CLASS + JUMP
 
 class Player {
   float size  = 100;
@@ -249,12 +268,12 @@ class Player {
   }
 }
 
-// -------------------------------------------------------------------------- ENEMY CLASS #1
+// ---------------------------------------------------------------------------------------- ENEMY CLASS #1
 
 class Enemy {
   float size = 100;
   PVector pos;
-  float speed = 7;
+  float speed = 15;
 
   Enemy() {
     pos = new PVector(random(width), height/2 - size/2, random(0, 301));
@@ -276,4 +295,38 @@ class Enemy {
   }
 }
 
-// --------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------- PLAYER BULLET CREATION
+
+class Bullet {
+  float size = 15;
+  
+  Bullet() {
+
+  }
+
+  void playerdisplay() {
+    pushMatrix();
+    translate(player.pos.x + player.size + 50, player.pos.y, player.pos.z);
+    sphere(size);
+    popMatrix();
+  }
+  void playermovement() {
+    
+  }
+}
+
+// ---------------------------------------------------------------------------------------- COLLISION/DEATH/END-SCREEN CLASS
+
+class Hit {
+
+  Hit() {
+    
+  }
+
+  void display() {
+    if (player.pos.dist(enemy.pos) < player.size) {
+      background(0);
+      image(img, 0, 0, 1080, 1920);
+    }
+  }
+}
